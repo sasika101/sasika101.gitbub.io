@@ -29,11 +29,13 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center px-4">
-  <div id="app" class="w-full max-w-4xl">
+<body class="min-h-screen px-4">
+  <div id="app" class="max-w-6xl mx-auto py-10">
     <!-- Login Page -->
-    <div id="loginPage" class="bg-white p-10 rounded-2xl shadow-2xl max-w-md mx-auto mt-10">
-      <h2 class="text-4xl font-bold mb-6 text-center text-deepblue">Login</h2>
+    <div id="loginPage" class="bg-white p-10 rounded-2xl shadow-2xl max-w-md mx-auto">
+      <div class="text-center mb-6">
+        <h1 class="text-4xl font-extrabold text-deepblue">💰 Expense Tracker</h1>
+      </div>
       <div class="space-y-4">
         <input id="username" type="text" placeholder="Username" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue">
         <input id="password" type="password" placeholder="Password" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue">
@@ -41,29 +43,63 @@
       </div>
     </div>
 
-    <!-- Tracker Page -->
-    <div id="trackerPage" class="hidden bg-white p-10 rounded-2xl shadow-2xl mt-10">
-      <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-deepblue">Expense Tracker</h2>
-        <button onclick="logout()" class="mt-4 sm:mt-0 py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition">Logout</button>
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="hidden">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-deepblue flex items-center gap-2">💰 Expense Tracker</h1>
+        <button onclick="logout()" class="py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition">Logout</button>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-        <input id="date" type="date" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue" />
-        <input id="desc" type="text" placeholder="Description" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue" />
-        <input id="amount" type="number" placeholder="Amount (₹)" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue" />
-        <button onclick="addExpense()" class="bg-green-600 text-white rounded-xl py-3 px-4 hover:bg-green-700 transition">Add</button>
+
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-green-100 text-green-800 p-6 rounded-xl shadow">
+          <h2 class="text-lg font-semibold">Total Income</h2>
+          <p id="totalIncome" class="text-2xl font-bold">₹0</p>
+        </div>
+        <div class="bg-red-100 text-red-800 p-6 rounded-xl shadow">
+          <h2 class="text-lg font-semibold">Total Expenses</h2>
+          <p id="totalExpenses" class="text-2xl font-bold">₹0</p>
+        </div>
+        <div class="bg-blue-100 text-blue-800 p-6 rounded-xl shadow">
+          <h2 class="text-lg font-semibold">Current Balance</h2>
+          <p id="currentBalance" class="text-2xl font-bold">₹0</p>
+        </div>
       </div>
+
+      <!-- Income and Expense Forms -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        <div>
+          <h3 class="text-xl font-semibold text-deepblue mb-4">Add Income</h3>
+          <div class="space-y-3">
+            <input id="incomeDesc" type="text" placeholder="Source" class="w-full border rounded-xl p-3">
+            <input id="incomeAmount" type="number" placeholder="Amount (₹)" class="w-full border rounded-xl p-3">
+            <button onclick="addIncome()" class="bg-green-600 text-white rounded-xl py-3 px-6 hover:bg-green-700 transition">Add Income</button>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold text-deepblue mb-4">Add Expense</h3>
+          <div class="space-y-3">
+            <input id="expenseDesc" type="text" placeholder="Description" class="w-full border rounded-xl p-3">
+            <input id="expenseAmount" type="number" placeholder="Amount (₹)" class="w-full border rounded-xl p-3">
+            <button onclick="addExpense()" class="bg-red-600 text-white rounded-xl py-3 px-6 hover:bg-red-700 transition">Add Expense</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <h3 class="text-2xl font-bold text-deepblue mb-4">Transaction History</h3>
       <div class="overflow-x-auto rounded-xl border border-gray-200">
         <table class="min-w-full text-sm">
           <thead class="bg-lightblue text-deepblue uppercase text-left">
             <tr>
-              <th class="px-4 py-3 border-b">Date</th>
+              <th class="px-4 py-3 border-b">Type</th>
               <th class="px-4 py-3 border-b">Description</th>
               <th class="px-4 py-3 border-b">Amount (₹)</th>
               <th class="px-4 py-3 border-b">Actions</th>
             </tr>
           </thead>
-          <tbody id="expenseTable" class="bg-white text-gray-800"></tbody>
+          <tbody id="transactionTable" class="bg-white text-gray-800"></tbody>
         </table>
       </div>
     </div>
@@ -71,8 +107,13 @@
 
   <script>
     const loginPage = document.getElementById("loginPage");
-    const trackerPage = document.getElementById("trackerPage");
-    const expenseTable = document.getElementById("expenseTable");
+    const dashboardPage = document.getElementById("dashboardPage");
+    const transactionTable = document.getElementById("transactionTable");
+    const totalIncomeEl = document.getElementById("totalIncome");
+    const totalExpensesEl = document.getElementById("totalExpenses");
+    const currentBalanceEl = document.getElementById("currentBalance");
+
+    let transactions = JSON.parse(localStorage.getItem("transactions") || "[]");
 
     function login() {
       const username = document.getElementById("username").value;
@@ -80,8 +121,8 @@
       if (username && password) {
         localStorage.setItem("loggedIn", true);
         loginPage.classList.add("hidden");
-        trackerPage.classList.remove("hidden");
-        loadExpenses();
+        dashboardPage.classList.remove("hidden");
+        renderDashboard();
       } else {
         alert("Enter both username and password.");
       }
@@ -90,62 +131,63 @@
     function logout() {
       localStorage.removeItem("loggedIn");
       loginPage.classList.remove("hidden");
-      trackerPage.classList.add("hidden");
+      dashboardPage.classList.add("hidden");
+    }
+
+    function addIncome() {
+      const desc = document.getElementById("incomeDesc").value;
+      const amount = parseFloat(document.getElementById("incomeAmount").value);
+      if (!desc || !amount) return alert("Please enter source and amount.");
+      transactions.push({ type: "Income", desc, amount });
+      saveAndRender();
     }
 
     function addExpense() {
-      const date = document.getElementById("date").value;
-      const desc = document.getElementById("desc").value;
-      const amount = document.getElementById("amount").value;
-      if (!date || !desc || !amount) return alert("Please fill out all fields.");
-      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-      expenses.push({ date, desc, amount });
-      localStorage.setItem("expenses", JSON.stringify(expenses));
-      loadExpenses();
-      document.getElementById("date").value = "";
-      document.getElementById("desc").value = "";
-      document.getElementById("amount").value = "";
+      const desc = document.getElementById("expenseDesc").value;
+      const amount = parseFloat(document.getElementById("expenseAmount").value);
+      if (!desc || !amount) return alert("Please enter description and amount.");
+      transactions.push({ type: "Expense", desc, amount });
+      saveAndRender();
     }
 
-    function loadExpenses() {
-      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-      expenseTable.innerHTML = "";
-      expenses.forEach((expense, index) => {
-        expenseTable.innerHTML += `
+    function deleteTransaction(index) {
+      transactions.splice(index, 1);
+      saveAndRender();
+    }
+
+    function saveAndRender() {
+      localStorage.setItem("transactions", JSON.stringify(transactions));
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      transactionTable.innerHTML = "";
+      let income = 0;
+      let expenses = 0;
+      transactions.forEach((txn, index) => {
+        if (txn.type === "Income") income += txn.amount;
+        else expenses += txn.amount;
+
+        transactionTable.innerHTML += `
           <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 border-b">${expense.date}</td>
-            <td class="px-4 py-3 border-b">${expense.desc}</td>
-            <td class="px-4 py-3 border-b">₹${expense.amount}</td>
-            <td class="px-4 py-3 border-b space-x-2">
-              <button class="px-3 py-1 rounded-xl bg-yellow-400 text-white hover:bg-yellow-500 transition" onclick="editExpense(${index})">Edit</button>
-              <button class="px-3 py-1 rounded-xl bg-red-500 text-white hover:bg-red-600 transition" onclick="deleteExpense(${index})">Delete</button>
+            <td class="px-4 py-3 border-b">${txn.type}</td>
+            <td class="px-4 py-3 border-b">${txn.desc}</td>
+            <td class="px-4 py-3 border-b">₹${txn.amount.toFixed(2)}</td>
+            <td class="px-4 py-3 border-b">
+              <button onclick="deleteTransaction(${index})" class="bg-red-500 text-white px-3 py-1 rounded-xl hover:bg-red-600 transition">Delete</button>
             </td>
-          </tr>
-        `;
+          </tr>`;
       });
-    }
-
-    function editExpense(index) {
-      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-      const expense = expenses[index];
-      document.getElementById("date").value = expense.date;
-      document.getElementById("desc").value = expense.desc;
-      document.getElementById("amount").value = expense.amount;
-      deleteExpense(index);
-    }
-
-    function deleteExpense(index) {
-      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-      expenses.splice(index, 1);
-      localStorage.setItem("expenses", JSON.stringify(expenses));
-      loadExpenses();
+      totalIncomeEl.textContent = `₹${income.toFixed(2)}`;
+      totalExpensesEl.textContent = `₹${expenses.toFixed(2)}`;
+      currentBalanceEl.textContent = `₹${(income - expenses).toFixed(2)}`;
     }
 
     window.onload = () => {
       if (localStorage.getItem("loggedIn")) {
         loginPage.classList.add("hidden");
-        trackerPage.classList.remove("hidden");
-        loadExpenses();
+        dashboardPage.classList.remove("hidden");
+        renderDashboard();
       }
     };
   </script>
