@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lightblue: '#e0f2ff',
+            deepblue: '#1e3a8a',
+            midblue: '#3b82f6',
+          },
+          borderRadius: {
+            xl: '1rem',
+            '2xl': '1.5rem',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at top left, #e0f7fa, #f1f5f9);
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+  <div id="app" class="w-full max-w-4xl">
+    <!-- Login Page -->
+    <div id="loginPage" class="bg-white p-10 rounded-2xl shadow-2xl max-w-md mx-auto mt-10">
+      <h2 class="text-4xl font-bold mb-6 text-center text-deepblue">Login</h2>
+      <div class="space-y-4">
+        <input id="username" type="text" placeholder="Username" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue">
+        <input id="password" type="password" placeholder="Password" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue">
+        <button onclick="login()" class="w-full py-3 bg-deepblue text-white rounded-xl font-semibold hover:bg-midblue transition">Login</button>
+      </div>
+    </div>
+
+    <!-- Tracker Page -->
+    <div id="trackerPage" class="hidden bg-white p-10 rounded-2xl shadow-2xl mt-10">
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-deepblue">Expense Tracker</h2>
+        <button onclick="logout()" class="mt-4 sm:mt-0 py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 transition">Logout</button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        <input id="date" type="date" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue" />
+        <input id="desc" type="text" placeholder="Description" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue" />
+        <input id="amount" type="number" placeholder="Amount (₹)" class="border border-gray-300 rounded-xl p-3 w-full focus:outline-none focus:ring-2 focus:ring-midblue" />
+        <button onclick="addExpense()" class="bg-green-600 text-white rounded-xl py-3 px-4 hover:bg-green-700 transition">Add</button>
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-gray-200">
+        <table class="min-w-full text-sm">
+          <thead class="bg-lightblue text-deepblue uppercase text-left">
+            <tr>
+              <th class="px-4 py-3 border-b">Date</th>
+              <th class="px-4 py-3 border-b">Description</th>
+              <th class="px-4 py-3 border-b">Amount (₹)</th>
+              <th class="px-4 py-3 border-b">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTable" class="bg-white text-gray-800"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loginPage = document.getElementById("loginPage");
+    const trackerPage = document.getElementById("trackerPage");
+    const expenseTable = document.getElementById("expenseTable");
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      if (username && password) {
+        localStorage.setItem("loggedIn", true);
+        loginPage.classList.add("hidden");
+        trackerPage.classList.remove("hidden");
+        loadExpenses();
+      } else {
+        alert("Enter both username and password.");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      loginPage.classList.remove("hidden");
+      trackerPage.classList.add("hidden");
+    }
+
+    function addExpense() {
+      const date = document.getElementById("date").value;
+      const desc = document.getElementById("desc").value;
+      const amount = document.getElementById("amount").value;
+      if (!date || !desc || !amount) return alert("Please fill out all fields.");
+      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
+      expenses.push({ date, desc, amount });
+      localStorage.setItem("expenses", JSON.stringify(expenses));
+      loadExpenses();
+      document.getElementById("date").value = "";
+      document.getElementById("desc").value = "";
+      document.getElementById("amount").value = "";
+    }
+
+    function loadExpenses() {
+      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
+      expenseTable.innerHTML = "";
+      expenses.forEach((expense, index) => {
+        expenseTable.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 border-b">${expense.date}</td>
+            <td class="px-4 py-3 border-b">${expense.desc}</td>
+            <td class="px-4 py-3 border-b">₹${expense.amount}</td>
+            <td class="px-4 py-3 border-b space-x-2">
+              <button class="px-3 py-1 rounded-xl bg-yellow-400 text-white hover:bg-yellow-500 transition" onclick="editExpense(${index})">Edit</button>
+              <button class="px-3 py-1 rounded-xl bg-red-500 text-white hover:bg-red-600 transition" onclick="deleteExpense(${index})">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function editExpense(index) {
+      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
+      const expense = expenses[index];
+      document.getElementById("date").value = expense.date;
+      document.getElementById("desc").value = expense.desc;
+      document.getElementById("amount").value = expense.amount;
+      deleteExpense(index);
+    }
+
+    function deleteExpense(index) {
+      const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
+      expenses.splice(index, 1);
+      localStorage.setItem("expenses", JSON.stringify(expenses));
+      loadExpenses();
+    }
+
+    window.onload = () => {
+      if (localStorage.getItem("loggedIn")) {
+        loginPage.classList.add("hidden");
+        trackerPage.classList.remove("hidden");
+        loadExpenses();
+      }
+    };
+  </script>
+</body>
+</html>
